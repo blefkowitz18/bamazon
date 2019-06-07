@@ -40,17 +40,19 @@ function runSearch() {
     ]).then(function (answer) {
       var chosenItem;
       for (var i = 0; i < results.length; i++) {
-        if (results[i].product_name === answer.choice) {
+        if (results[i].product_name === answer.productName) {
           chosenItem = results[i];
         }
       }
       var intProductQuantity = parseInt(answer.productQuantity)
       if (chosenItem.stock_quantity < intProductQuantity) {
-        console.log("insufficient Quantity")
+        console.log("insufficient Quantity");
+        runSearch()
       }
       else {
         newStockQuantity = chosenItem.stock_quantity - intProductQuantity
-        connection.query("UPDATE products SET ? WHERE ?")
+        connection.query(
+          "UPDATE products SET ? WHERE ?",
         [
           {
             stock_quantity: newStockQuantity
@@ -59,10 +61,11 @@ function runSearch() {
             id: chosenItem.id
           }
         ],
-          function (error) {
-            if (error) throw err;
+          function(){
             console.log("stock is updated");
+            runSearch()
           }
+        )
       }
     })
   })
