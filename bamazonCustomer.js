@@ -62,7 +62,8 @@ function runSearch() {
           }
         ],
           function(){
-            console.log("stock is updated");
+            var price = chosenItem.price * intProductQuantity
+            console.log("The cost of your order will be $" + price + ".");
             runSearch()
           }
         )
