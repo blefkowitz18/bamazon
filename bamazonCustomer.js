@@ -18,23 +18,19 @@ connection.connect(function (err) {
 function runSearch() {
   inquirer.prompt([
     {
-      type: "input",
+      type: "list",
       message: "What is the name of the product you want to purchase?",
+      choices: ["body wash", "shampoo", "basketball", "volleyball", "t-shirts", "athletic shorts", "poufs", "canvas", "pencils", "dry-erase markers"],
       name: "productName"
     },
 
   ]).then(function (answer) {
-    var query = "SELECT product_name FROM products";
+    var query = "SELECT * FROM products WHERE ?";
     connection.query(query, { product_name: answer.productName }, function (err, res) {
       for (var i = 0; i < res.length; i++) {
-        if (answer.productName === res[i]) {
-          console.log(productName);
+        var chosenItem = res[i].product_name;
+          console.log(chosenItem);
           quantitySearch();
-        }
-        else {
-          console.log("please search for a different item.")
-          runSearch()
-        }
       }
     })
   })
