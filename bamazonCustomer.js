@@ -16,34 +16,54 @@ connection.connect(function (err) {
 
 
 function runSearch() {
-  inquirer.prompt([
-    {
-      type: "list",
-      message: "What is the name of the product you want to purchase?",
-      choices: ["body wash", "shampoo", "basketball", "volleyball", "t-shirts", "athletic shorts", "poufs", "canvas", "pencils", "dry-erase markers"],
-      name: "productName"
-    },
+  connection.query("SELECT * FROM products", function (err, results) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: "productName",
+        type: "rawlist",
+        message: "What is the name of the product you want to purchase?",
+        choices: function () {
+          var choiceArray = [];
+          for (var i = 0; i < results.length; i++) {
+            choiceArray.push(results[i].product_name);
+          }
+          return choiceArray;
+        }
+      },
+      {
+        type: "input",
+        message: "How many units would you like to purchase?",
+        name: "productQuantity"
+      },
 
-  ]).then(function (answer) {
-    var query = "SELECT * FROM products WHERE ?";
-    connection.query(query, { product_name: answer.productName }, function (err, res) {
-      for (var i = 0; i < res.length; i++) {
-        var chosenItem = res[i].product_name;
-          console.log(chosenItem);
-          quantitySearch();
+    ]).then(function (answer) {
+      var chosenItem;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].product_name === answer.choice) {
+          chosenItem = results[i];
+        }
+      }
+      var intProductQuantity = parseInt(answer.productQuantity)
+      if (chosenItem.stock_quantity < intProductQuantity) {
+        console.log("insufficient Quantity")
+      }
+      else {
+        newStockQuantity = chosenItem.stock_quantity - intProductQuantity
+        connection.query("UPDATE products SET ? WHERE ?")
+        [
+          {
+            stock_quantity: newStockQuantity
+          },
+          {
+            id: chosenItem.id
+          }
+        ],
+          function (error) {
+            if (error) throw err;
+            console.log("stock is updated");
+          }
       }
     })
-  })
-}
-
-function quantitySearch(){
-  inquirer.prompt([
-    {
-      type: "input",
-      message: "How many units would you like to purchase?",
-      name: "productQuantity"
-    }
-  ]).then(function (answer) {
-    
   })
 }
